@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Data Siswa - SMK Negeri 1 Purbalingga</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #3b82f6;
+            --accent-color: #f59e0b;
+            --dark-color: #1f2937;
+            --light-bg: #f3f4f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+        }
+
+        /* Header Styles */
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .school-logo {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background: white;
+            min-height: calc(100vh - 80px);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link {
+            color: var(--dark-color);
+            padding: 1rem 1.5rem;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: var(--light-bg);
+            border-left-color: var(--secondary-color);
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #e0e7ff;
+            border-left-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* Card Styles */
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .table th {
+            background-color: var(--light-bg);
+            border: none;
+            font-weight: 600;
+            color: var(--dark-color);
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+
+        .table td {
+            vertical-align: middle;
+            border: none;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        /* Button Styles */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #1e40af;
+            border-color: #1e40af;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        /* Badge Styles */
+        .badge {
+            padding: 0.5rem 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Modal Styles */
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+
+        /* Search Box Styles */
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding-left: 40px;
+            border-radius: 25px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        /* Loading Spinner */
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                z-index: 1000;
+                width: 250px;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="spinner-overlay" id="loadingSpinner">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="main-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        <div class="school-logo me-3">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">SMK Negeri 1 Purbalingga</h3>
+                            <p class="mb-0 opacity-75">Sistem Data Siswa</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-light btn-sm" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span class="ms-3">
+                        <i class="fas fa-user-circle"></i> Administrator
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 sidebar" id="sidebar">
+                <div class="p-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" onclick="showSection('dashboard')">
+                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('data-siswa')">
+                                <i class="fas fa-users me-2"></i> Data Siswa
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('laporan')">
+                                <i class="fas fa-chart-bar me-2"></i> Laporan
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('pengaturan')">
+                                <i class="fas fa-cog me-2"></i> Pengaturan
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-10 main-content">
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="content-section fade-in">
+                    <h4 class="mb-4">Dashboard</h4>
+                    
+                    <!-- Stat Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1">Total Siswa</h6>
+                                        <h3 class="mb-0" id="totalSiswa">0</h3>
+                                    </div>
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1">Laki-laki</h6>
+                                        <h3 class="mb-0" id="totalLaki">0</h3>
+                                    </div>
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);">
+                                        <i class="fas fa-male"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1">Perempuan</h6>
+                                        <h3 class="mb-0" id="totalPerempuan">0</h3>
+                                    </div>
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);">
+                                        <i class="fas fa-female"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1">Total Kelas</h6>
+                                        <h3 class="mb-0" id="totalKelas">0</h3>
+                                    </div>
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                                        <i class="fas fa-school"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="stat-card">
+                                <h6 class="mb-3">Distribusi Siswa per Jurusan</h6>
+                                <canvas id="jurusanChart" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="stat-card">
+                                <h6 class="mb-3">Rasio Jenis Kelamin</h6>
+                                <canvas id="genderChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Data Siswa Section -->
+                <section id="data-siswa" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4>Data Siswa</h4>
+                        <button class="btn btn-primary" onclick="showAddModal()">
+                            <i class="fas fa-plus me-2"></i> Tambah Siswa
+                        </button>
+                    </div>
+
+                    <!-- Search and Filter -->
+                    <div class="table-container mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control" id="searchInput" placeholder="Cari siswa...">
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <select class="form-select d-inline-block w-auto me-2" id="filterJurusan">
+                                    <option value="">Semua Jurusan</option>
+                                    <option value="Teknik Komputer Jaringan">Teknik Komputer Jaringan</option>
+                                    <option value="Multimedia">Multimedia</option>
+                                    <option value="Rekayasa Perangkat Lunak">Rekayasa Perangkat Lunak</option>
+                                    <option value="Akuntansi">Akuntansi</option>
+                                    <option value="Administrasi Perkantoran">Administrasi Perkantoran</option>
+                                </select>
+                                <button class="btn btn-secondary" onclick="exportToExcel()">
+                                    <i class="fas fa-file-excel me-2"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="siswaTable">
+                                <thead>
+                                    <tr>
+                                        <th>NIS</th>
+                                        <th>Nama</th>
+                                        <th>Jenis Kelamin</th>
+                                        <th>Kelas</th>
+                                        <th>Jurusan</th>
+                                        <th>No. HP</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="siswaTableBody">
+                                    <!-- Data akan diisi oleh JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Laporan Section -->
+                <section id="laporan" class="content-section" style="display: none;">
+                    <h4 class="mb-4">Laporan</h4>
+                    <div class="table-container">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Filter Laporan</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Jurusan</label>
+                                    <select class="form-select" id="laporanJurusan">
+                                        <option value="">Semua Jurusan</option>
+                                        <option value="Teknik Komputer Jaringan">Teknik Komputer Jaringan</option>
+                                        <option value="Multimedia">Multimedia</option>
+                                        <option value="Rekayasa Perangkat Lunak">Rekayasa Perangkat Lunak</option>
+                                        <option value="Akuntansi">Akuntansi</option>
+                                        <option value="Administrasi Perkantoran">Administrasi Perkantoran</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Kelas</label>
+                                    <select class="form-select" id="laporanKelas">
+                                        <option value="">Semua Kelas</option>
+                                        <option value="X">X</option>
+                                        <option value="XI">XI</option>
+                                        <option value="XII">XII</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" onclick="generateLaporan()">
+                                    <i class="fas fa-file-pdf me-2"></i> Generate Laporan
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Ringkasan Laporan</h6>
+                                <div id="ringkasanLaporan">
+                                    <p class="text-muted">Pilih filter dan klik generate laporan</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pengaturan Section -->
+                <section id="pengaturan" class="content-section" style="display: none;">
+                    <h4 class="mb-4">Pengaturan</h4>
+                    <div class="table-container">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Informasi Sekolah</h6>
+                                <form>
+                                    <div class="mb-3">
+                                        <label class="form-label">Nama Sekolah</label>
+                                        <input type="text" class="form-control" value="SMK Negeri 1 Purbalingga">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Alamat</label>
+                                        <textarea class="form-control" rows="3">Jl. Jendral Sudirman No. 123, Purbalingga</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Telepon</label>
+                                        <input type="text" class="form-control" value="(0281) 891234">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Backup Data</h6>
+                                <div class="border rounded p-3 mb-3">
+                                    <p class="mb-2">Backup terakhir: <strong>Belum pernah</strong></p>
+                                    <button class="btn btn-success" onclick="backupData()">
+                                        <i class="fas fa-download me-2"></i> Backup Sekarang
+                                    </button>
+                                </div>
+                                <h6>Reset Data</h6>
+                                <div class="border rounded p-3">
+                                    <p class="text-danger mb-2">Peringatan: Ini akan menghapus semua data siswa!</p>
+                                    <button class="btn btn-danger" onclick="resetData()">
+                                        <i class="fas fa-trash me-2"></i> Reset Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal Tambah/Edit Siswa -->
+    <div class="modal fade" id="siswaModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Tambah Siswa Baru</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="siswaForm">
+                        <input type="hidden" id="siswaId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">NIS <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="nis" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="nama" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Jenis Kelamin <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="jenisKelamin" required>
+                                        <option value="">Pilih</option>
+                                        <option value="Laki-laki">Laki-laki</option>
+                                        <option value="Perempuan">Perempuan</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Tempat Lahir <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="tempatLahir" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Tanggal Lahir <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="tanggalLahir" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Kelas <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="kelas" required>
+                                        <option value="">Pilih</option>
+                                        <option value="X">X</option>
+                                        <option value="XI">XI</option>
+                                        <option value="XII">XII</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Jurusan <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="jurusan" required>
+                                        <option value="">Pilih</option>
+                                        <option value="Teknik Komputer Jaringan">Teknik Komputer Jaringan</option>
+                                        <option value="Multimedia">Multimedia</option>
+                                        <option value="Rekayasa Perangkat Lunak">Rekayasa Perangkat Lunak</option>
+                                        <option value="Akuntansi">Akuntansi</option>
+                                        <option value="Administrasi Perkantoran">Administrasi Perkantoran</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">No. HP</label>
+                                    <input type="text" class="form-control" id="noHp">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Alamat</label>
+                            <textarea class="form-control" id="alamat" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Orang Tua/Wali</label>
+                            <input type="text" class="form-control" id="namaOrtu">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSiswa()">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global Variables
+        let siswaData = JSON.parse(localStorage.getItem('siswaData')) || [];
+        let currentEditId = null;
+        let jurusanChart = null;
+        let genderChart = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDashboard();
+            renderSiswaTable();
+            initializeCharts();
+            
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('input', filterTable);
+            document.getElementById('filterJurusan').addEventListener('change', filterTable);
+        });
+
+        // Show Section
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).style.display = 'block';
+            
+            // Update active nav
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update dashboard if needed
+            if (sectionId === 'dashboard') {
+                updateDashboard();
+                updateCharts();
+            }
+        }
+
+        // Toggle Sidebar
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        // Show Add Modal
+        function showAddModal() {
+            currentEditId = null;
+            document.getElementById('modalTitle').textContent = 'Tambah Siswa Baru';
+            document.getElementById('siswaForm').reset();
+            new bootstrap.Modal(document.getElementById('siswaModal')).show();
+        }
+
+        // Show Edit Modal
+        function showEditModal(id) {
+            currentEditId = id;
+            const siswa = siswaData.find(s => s.id === id);
+            
+            if (siswa) {
+                document.getElementById('modalTitle').textContent = 'Edit Data Siswa';
+                document.getElementById('nis').value = siswa.nis;
+                document.getElementById('nama').value = siswa.nama;
+                document.getElementById('jenisKelamin').value = siswa.jenisKelamin;
+                document.getElementById('tempatLahir').value = siswa.tempatLahir;
+                document.getElementById('tanggalLahir').value = siswa.tanggalLahir;
+                document.getElementById('kelas').value = siswa.kelas;
+                document.getElementById('jurusan').value = siswa.jurusan;
+                document.getElementById('noHp').value = siswa.noHp;
+                document.getElementById('alamat').value = siswa.alamat;
+                document.getElementById('namaOrtu').value = siswa.namaOrtu;
+                
+                new bootstrap.Modal(document.getElementById('siswaModal')).show();
+            }
+        }
+
+        // Save Siswa
+        function saveSiswa() {
+            const form = document.getElementById('siswaForm');
+            
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            const siswa = {
+                id: currentEditId || Date.now(),
+                nis: document.getElementById('nis').value,
+                nama: document.getElementById('nama').value,
+                jenisKelamin: document.getElementById('jenisKelamin').value,
+                tempatLahir: document.getElementById('tempatLahir').value,
+                tanggalLahir: document.getElementById('tanggalLahir').value,
+                kelas: document.getElementById('kelas').value,
+                jurusan: document.getElementById('jurusan').value,
+                noHp: document.getElementById('noHp').value,
+                alamat: document.getElementById('alamat').value,
+                namaOrtu: document.getElementById('namaOrtu').value
+            };
+            
+            if (currentEditId) {
+                // Update existing
+                const index = siswaData.findIndex(s => s.id === currentEditId);
+                siswaData[index] = siswa;
+            } else {
+                // Add new
+                siswaData.push(siswa);
+            }
+            
+            localStorage.setItem('siswaData', JSON.stringify(siswaData));
+            renderSiswaTable();
+            updateDashboard();
+            updateCharts();
+            
+            bootstrap.Modal.getInstance(document.getElementById('siswaModal')).hide();
+            showNotification('Data siswa berhasil disimpan!', 'success');
+        }
+
+        // Delete Siswa
+        function deleteSiswa(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus data siswa ini?')) {
+                siswaData = siswaData.filter(s => s.id !== id);
+                localStorage.setItem('siswaData', JSON.stringify(siswaData));
+                renderSiswaTable();
+                updateDashboard();
+                updateCharts();
+                showNotification('Data siswa berhasil dihapus!', 'danger');
+            }
+        }
+
+        // Render Siswa Table
+        function renderSiswaTable() {
+            const tbody = document.getElementById('siswaTableBody');
+            tbody.innerHTML = '';
+            
+            siswaData.forEach(siswa => {
+                const row = `
+                    <tr>
+                        <td>${siswa.nis}</td>
+                        <td>${siswa.nama}</td>
+                        <td>
+                            <span class="badge ${siswa.jenisKelamin === 'Laki-laki' ? 'bg-primary' : 'bg-danger'}">
+                                ${siswa.jenisKelamin === 'Laki-laki' ? '<i class="fas fa-male me-1"></i>' : '<i class="fas fa-female me-1"></i>'}
+                                ${siswa.jenisKelamin}
+                            </span>
+                        </td>
+                        <td>${siswa.kelas}</td>
+                        <td>${siswa.jurusan}</td>
+                        <td>${siswa.noHp || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="showEditModal(${siswa.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSiswa(${siswa.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Filter Table
+        function filterTable() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+            const jurusanValue = document.getElementById('filterJurusan').value;
+            
+            const rows = document.querySelectorAll('#siswaTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const jurusan = row.cells[4].textContent;
+                
+                const matchesSearch = text.includes(searchValue);
+                const matchesJurusan = !jurusanValue || jurusan === jurusanValue;
+                
+                row.style.display = matchesSearch && matchesJurusan ? '' : 'none';
+            });
+        }
+
+        // Update Dashboard
+        function updateDashboard() {
+            const totalSiswa = siswaData.length;
+            const totalLaki = siswaData.filter(s => s.jenisKelamin === 'Laki-laki').length;
+            const totalPerempuan = siswaData.filter(s => s.jenisKelamin === 'Perempuan').length;
+            const totalKelas = new Set(siswaData.map(s => s.kelas)).size;
+            
+            document.getElementById('totalSiswa').textContent = totalSiswa;
+            document.getElementById('totalLaki').textContent = totalLaki;
+            document.getElementById('totalPerempuan').textContent = totalPerempuan;
+            document.getElementById('totalKelas').textContent = totalKelas;
+        }
+
+        // Initialize Charts
+        function initializeCharts() {
+            // Jurusan Chart
+            const jurusanCtx = document.getElementById('jurusanChart').getContext('2d');
+            jurusanChart = new Chart(jurusanCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Jumlah Siswa',
+                        data: [],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(139, 92, 246, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(139, 92, 246, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gender Chart
+            const genderCtx = document.getElementById('genderChart').getContext('2d');
+            genderChart = new Chart(genderCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Laki-laki', 'Perempuan'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(236, 72, 153, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(236, 72, 153, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            updateCharts();
+        }
+
+        // Update Charts
+        function updateCharts() {
+            if (!jurusanChart || !genderChart) return;
+            
+            // Update Jurusan Chart
+            const jurusanCount = {};
+            siswaData.forEach(siswa => {
+                jurusanCount[siswa.jurusan] = (jurusanCount[siswa.jurusan] || 0) + 1;
+            });
+            
+            jurusanChart.data.labels = Object.keys(jurusanCount);
+            jurusanChart.data.datasets[0].data = Object.values(jurusanCount);
+            jurusanChart.update();
+            
+            // Update Gender Chart
+            const lakiCount = siswaData.filter(s => s.jenisKelamin === 'Laki-laki').length;
+            const perempuanCount = siswaData.filter(s => s.jenisKelamin === 'Perempuan').length;
+            
+            genderChart.data.datasets[0].data = [lakiCount, perempuanCount];
+            genderChart.update();
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            showLoading();
+            
+            setTimeout(() => {
+                let csv = 'NIS,Nama,Jenis Kelamin,Kelas,Jurusan,No. HP,Alamat,Nama Orang Tua\n';
+                
+                siswaData.forEach(siswa => {
+                    csv += `${siswa.nis},${siswa.nama},${siswa.jenisKelamin},${siswa.kelas},${siswa.jurusan},${siswa.noHp},${siswa.alamat},${siswa.namaOrtu}\n`;
+                });
+                
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Data_Siswa_SMKN1_Purbalingga_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                
+                hideLoading();
+                showNotification('Data berhasil diexport!', 'success');
+            }, 1000);
+        }
+
+        // Generate Laporan
+        function generateLaporan() {
+            const jurusan = document.getElementById('laporanJurusan').value;
+            const kelas = document.getElementById('laporanKelas').value;
+            
+            let filteredData = siswaData;
+            
+            if (jurusan) {
+                filteredData = filteredData.filter(s => s.jurusan === jurusan);
+            }
+            
+            if (kelas) {
+                filteredData = filteredData.filter(s => s.kelas === kelas);
+            }
+            
+            const ringkasan = `
+                <div class="alert alert-info">
+                    <h6>Hasil Filter:</h6>
+                    <p>Total Siswa: <strong>${filteredData.length}</strong></p>
+                    <p>Jurusan: <strong>${jurusan || 'Semua Jurusan'}</strong></p>
+                    <p>Kelas: <strong>${kelas || 'Semua Kelas'}</strong></p>
+                    <button class="btn btn-primary btn-sm mt-2" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i> Cetak Laporan
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('ringkasanLaporan').innerHTML = ringkasan;
+        }
+
+        // Backup Data
+        function backupData() {
+            showLoading();
+            
+            setTimeout(() => {
+                const dataStr = JSON.stringify(siswaData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Backup_Data_Siswa_SMKN1_Purbalingga_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                
+                hideLoading();
+                showNotification('Backup berhasil dibuat!', 'success');
+            }, 1000);
+        }
+
+        // Reset Data
+        function resetData() {
+            if (confirm('Anda yakin ingin menghapus semua data siswa? Tindakan ini tidak dapat dibatalkan!')) {
+                siswaData = [];
+                localStorage.setItem('siswaData', JSON.stringify(siswaData));
+                renderSiswaTable();
+                updateDashboard();
+                updateCharts();
+                showNotification('Semua data berhasil direset!', 'warning');
+            }
+        }
+
+        // Show Loading
+        function showLoading() {
+            document.getElementById('loadingSpinner').style.display = 'flex';
+        }
+
+        // Hide Loading
+        function hideLoading() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        // Show Notification
+        function showNotification(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+        // Add sample data if empty
+        if (siswaData.length === 0) {
+            const sampleData = [
+                {
+                    id: 1,
+                    nis: '2023001',
+                    nama: 'Ahmad Fauzi',
+                    jenisKelamin: 'Laki-laki',
+                    tempatLahir: 'Purbalingga',
+                    tanggalLahir: '2005-05-15',
+                    kelas: 'XII',
+                    jurusan: 'Teknik Komputer Jaringan',
+                    noHp: '081234567890',
+                    alamat: 'Jl. Merdeka No. 123',
+                    namaOrtu: 'Bapak Suharto'
+                },
+                {
+                    id: 2,
+                    nis: '2023002',
+                    nama: 'Siti Nurhaliza',
+                    jenisKelamin: 'Perempuan',
+                    tempatLahir: 'Purbalingga',
+                    tanggalLahir: '2005-08-20',
+                    kelas: 'XII',
+                    jurusan: 'Multimedia',
+                    noHp: '081234567891',
+                    alamat: 'Jl. Sudirman No. 456',
+                    namaOrtu: 'Ibu Siti Aminah'
+                },
+                {
+                    id: 3,
+                    nis: '2023003',
+                    nama: 'Budi Santoso',
+                    jenisKelamin: 'Laki-laki',
+                    tempatLahir: 'Purbalingga',
+                    tanggalLahir: '2006-01-10',
+                    kelas: 'XI',
+                    jurusan: 'Rekayasa Perangkat Lunak',
+                    noHp: '081234567892',
+                    alamat: 'Jl. Pemuda No. 789',
+                    namaOrtu: 'Bapak Santoso'
+                }
+            ];
+            
+            siswaData = sampleData;
+            localStorage.setItem('siswaData', JSON.stringify(siswaData));
+        }
+    </script>
+</body>
+</html>
